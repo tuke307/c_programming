@@ -58,8 +58,8 @@ int main()
         break;
     }
 
-    printf("\nWhich result format do you want?\n");
-    printf("a: cartese: z = a + bi\n");
+    printf("\nWhich result format do you like?\n");
+    printf("a: cartesian: z = a + bi\n");
     printf("b: polar 1: z = r * e(i * phi)\n");
     printf("c: Polar 2: z = r * (cos(phi) + i * sin(phi))\n");
 
@@ -90,7 +90,3 @@ int main()
 
     return 1;
 }
-
-
-
-
