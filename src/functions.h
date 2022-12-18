@@ -5,6 +5,7 @@ typedef struct
 {
     double real;
     double imaginary;
+    int isAssigned;
 }complex_number;
 
 typedef struct
@@ -21,6 +22,8 @@ complex_number multiply(complex_number num1, complex_number num2);
 complex_number division(complex_number num1, complex_number num2);
 
 complex_number convert_str_to_complex_number(char* num);
+
+int get_index(char* string, char c);
 
 output_vars calculate_output_vars(complex_number num);
 

@@ -10,23 +10,38 @@ int main()
     char math_operation, res_format;
     output_vars o_vars;
 
-    printf("-----------------------------------------------------------------------\n");
-    printf("This programm handles mathematical operations with two complex numbers.\n");
-    printf("-----------------------------------------------------------------------\n\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("This program handles mathematical operations with two complex numbers.\n");
+    printf("----------------------------------------------------------------------\n\n");
 
     printf("Enter the first complex number (a+bi):\n");
     printf("answer: ");
     scanf("%s", &str_num1);
 
-    //cn_num1 = convert_str_to_complex_number(str_num1);
-    sscanf(str_num1, "%lf + %lfi", &cn_num1.real, &cn_num1.imaginary);
-    
+    // Easy way:
+    // sscanf(str_num1, "%lf + %lfi", &cn_num1.real, &cn_num1.imaginary);
+
+    // according to task:
+    cn_num1 = convert_str_to_complex_number(&str_num1);
+    if(cn_num1.isAssigned == 0)
+    {
+        return -1;
+    }
+     
     printf("\nEnter the second complex number (a+bi):\n");
     printf("answer: ");
     scanf("%s", &str_num2);
 
-    //cn_num2 = convert_str_to_complex_number(str_num2);
-    sscanf(str_num2, "%lf+%lfi", &cn_num2.real, &cn_num2.imaginary);
+    // Easy way:
+    // sscanf(str_num2, "%lf+%lfi", &cn_num2.real, &cn_num2.imaginary);
+
+    // according to task:
+    cn_num2 = convert_str_to_complex_number(&str_num2);
+    if(cn_num2.isAssigned == 0)
+    {
+        return -1;
+    }
+    
 
     printf("\nWhich operation you would like to do?\n");
     printf("+: addition\n");
