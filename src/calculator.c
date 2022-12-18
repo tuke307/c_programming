@@ -1,6 +1,4 @@
 #include<stdio.h>
-#include<string.h>
-#include<math.h>
 #include "functions.h"
 
  // gcc calculator.c functions.c -Wall -o main.exe
@@ -10,7 +8,7 @@ int main()
     char str_num1[256], str_num2[256];
     complex_number cn_num1, cn_num2, result;
     char math_operation, res_format;
-    double r, phi, phi_cos, phi_sin;
+    output_vars o_vars;
 
     printf("-----------------------------------------------------------------------\n");
     printf("This programm handles mathematical operations with two complex numbers.\n");
@@ -60,7 +58,7 @@ int main()
         break;
     }
 
-    printf("\nWhich result format do you like?\n");
+    printf("\nWhich result format do you want?\n");
     printf("a: cartese: z = a + bi\n");
     printf("b: polar 1: z = r * e(i * phi)\n");
     printf("c: Polar 2: z = r * (cos(phi) + i * sin(phi))\n");
@@ -69,10 +67,8 @@ int main()
     scanf("%s", &res_format);
     printf("\n");
 
-    phi = calculate_phi(result);
-    phi_cos = cos(phi);
-    phi_sin = sin(phi);
-    r = calculate_r(result);
+
+    o_vars = calculate_output_vars(result);
 
     switch (res_format)
     {
@@ -80,10 +76,10 @@ int main()
         printf("result: %f + %fi\n", result.real, result.imaginary);
         break;
     case 'b':
-        printf("result: %f + e^(i * %f)\n", r, phi);
+        printf("result: %f + e^(i * %f)\n", o_vars.r, o_vars.phi);
         break;
     case 'c':
-        printf("result: %f + (%f + i * %f)\n", r, phi_sin, phi_cos);
+        printf("result: %f + (%f + i * %f)\n", o_vars.r, o_vars.phi_sin, o_vars.phi_cos);
         break;
     
     default:
