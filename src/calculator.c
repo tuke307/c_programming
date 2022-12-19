@@ -5,7 +5,7 @@
  // ./main.exe
 int main()
 {
-    char* str_num1, str_num2;
+    char str_num1[256], str_num2[256];
     complex_number cn_num1, cn_num2, result;
     char math_operation, res_format;
     output_vars o_vars;
