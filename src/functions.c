@@ -76,10 +76,13 @@ complex_number convert_str_to_complex_number(char* num)
         return ret;
     }
 
-    strncpy(num1, num, seperator_index);
-    strcpy(num2, num + seperator_index + 1);
+    num1[seperator_index] = '\0';
+    num2[strlen(num) - seperator_index - 2] = '\0';
 
-    ret.real = atof(num);
+    strncpy(num1, num, seperator_index);
+    strncpy(num2, num + seperator_index + 1, strlen(num) - seperator_index - 2);
+
+    ret.real = atof(num1);
     ret.imaginary = atof(num2);
     ret.isAssigned = 1;
 
