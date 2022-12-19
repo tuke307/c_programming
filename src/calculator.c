@@ -75,8 +75,8 @@ int main()
 
     printf("\nWhich result format do you like?\n");
     printf("a: cartesian: z = a + bi\n");
-    printf("b: polar 1: z = r * e(i * phi)\n");
-    printf("c: Polar 2: z = r * (cos(phi) + i * sin(phi))\n");
+    printf("b: euler: z = r * e^(i * phi)\n");
+    printf("c: polar: z = r * (cos(phi) + i * sin(phi))\n");
 
     printf("answer: ");
     scanf("%s", &res_format);
