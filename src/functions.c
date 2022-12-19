@@ -50,11 +50,19 @@ complex_number convert_str_to_complex_number(char* num)
     complex_number ret;
     char num1[256], num2[256];
     char const seperator = '+';
+    char const c_imaginary = 'i';
     int seperator_index;
 
     if(num[0] == seperator)
     {
         printf("ERROR: Please ignore the mathematical operator (+) for positive numbers.\n");
+        ret.isAssigned = 0;
+        return ret;
+    }
+
+    if(num[strlen(num)-1] != c_imaginary)
+    {
+        printf("ERROR: Please use the correct format for complex numbers.\n");
         ret.isAssigned = 0;
         return ret;
     }
