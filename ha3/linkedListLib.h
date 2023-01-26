@@ -136,8 +136,6 @@ void exitFcn(listElement *);
 */
 void sortList(listElement *);
 
-void appendList(listElement *, listElement);
-
 /** 
     \FUNCTION: stringToLower
  
