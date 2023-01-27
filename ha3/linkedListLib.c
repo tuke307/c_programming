@@ -1,11 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>   // only win
+#include <stdbool.h>
 #include "linkedListLib.h"
 
-void appendList(listElement *, listElement);
+void appendList(listElement *, char[50], char[50], int);
 
 int delListElemAtIndex(listElement *, int);
+
+const char *getFilenameExt(const char *);
+
+char* concatStr(const char*, const char*);
+
+bool fileExists(char *);
+
+char* concatStr(const char* strFirst, const char* strSecond)
+{
+    char *result = malloc(strlen(strFirst) + strlen(strSecond) + 1);
+    strcpy(result, strFirst);
+    strcat(result, strSecond);
+    return result;
+}
 
 void addListElem(listElement *start)
 {
@@ -61,7 +77,7 @@ void delListElem(listElement *start)
     int indexElementDelete;
 
     if (start->nextElem == NULL)
-        printf("nothing to delete: list is alredy empty.\n");
+        printf("nothing to delete, list is alredy empty.\n");
     else
     {
         printList(start);
@@ -98,7 +114,7 @@ int delListElemAtIndex(listElement *start, int indexElementDelete)
 void delList(listElement *start)
 {
     if (start->nextElem == NULL)
-        printf("nothing to delete: list is alredy empty.\n");
+        printf("nothing to delete, list is alredy empty.\n");
     else
     {
         // delete backwards by index
@@ -126,100 +142,106 @@ int getLenOfList(listElement *start)
     return counter;
 }
 
+const char *getFilenameExt(const char *filename)
+{
+    const char *dot = strrchr(filename, '.');
+    if(!dot || dot == filename)
+        return "";
+    return dot + 1;
+}
+
+bool fileExists(char *filename) {
+  struct stat   buffer;   
+  return (stat (filename, &buffer) == 0);
+}
+
 void saveList(listElement *start)
 {
-    char saveFilename[50];  
-    FILE *listSaveFile;
+    char *saveFilename = (char*)malloc(sizeof(char)); 
+    FILE *filePtr;
     listElement *current = start;
-    char fileSaveFormat[100] = "%s,%s,%i\n";
+    char *fileLineFormat = "%s %s %i\n";
 
     if (current->nextElem == NULL)
-        printf("List is empty.\n");
-    else
-    {
-        printf("filename: ");
+        printf("nothing to save, list is empty.\n");
+    else{
+        printf("filename (without extension): ");
         scanf("%s", saveFilename);
+        saveFilename = concatStr(saveFilename, ".txt");
 
-        listSaveFile = fopen (saveFilename, "w");
-        if (listSaveFile == NULL)
-        {
-            printf("Error opening file\n");
-        }else
-        {
-            do
-            {
+        filePtr = fopen (saveFilename, "w");
+        if (filePtr == NULL)
+            printf("ERROR: while opening file.\n");
+        else{
+            do{
                 current = current->nextElem;
-                fprintf (listSaveFile, fileSaveFormat, current->lastName, current->firstName, current->age);
+                fprintf (filePtr, fileLineFormat, current->lastName, current->firstName, current->age);
             } while (current->nextElem != NULL);
-        
-            fclose (listSaveFile);
+
+            fclose (filePtr);
+
+            printf("list was successfully saved in >>%s<<.\n", saveFilename);
         }
     }
 }
 
-void appendList(
-    listElement* start,
-    listElement insert)
+void appendList(listElement* start, char lastName[50], char firstName[50], int age)
 {
-    /* 1. allocate node */
-    listElement* new_node = (listElement*) malloc(sizeof(listElement));
+    listElement* newElem = (listElement*) malloc(sizeof(listElement));
+    listElement *lastElem = start;
 
-    listElement *last = start;  /* used in step 5*/
+    strcpy(newElem->lastName, lastName);
+    strcpy(newElem->firstName, firstName);
+    newElem->age = age;
 
-    /* 2. put in the data  */
-    strcpy(new_node->lastName,insert.lastName);
-    strcpy(new_node->firstName, insert.firstName);
-    new_node->age  = insert.age;
+    newElem->nextElem = NULL;
 
-    /* 3. This new node is going to be the last node, so make next of
-          it as NULL*/
-    new_node->nextElem = NULL;
-
-    /* 4. If the Linked List is empty, then make the new node as head */
-    if (start == NULL)
-    {
-       start = new_node;
+    if (start == NULL){
+       start = newElem;
        return;
     }
 
-    /* 5. Else traverse till the last node */
-    while (last->nextElem != NULL)
-        last = last->nextElem;
+    while (lastElem->nextElem != NULL)
+        lastElem = lastElem->nextElem;
 
-    /* 6. Change the next of last node */
-    last->nextElem = new_node;
-
-    return;
+    lastElem->nextElem = newElem;
 }
 
 void loadList(listElement *start)
 {
-    FILE *listFile;
-    listElement input;
-    char filename[50];
-    char fileSaveFormat[100] = "%s,%s,%i";
-    char line[100];
+    FILE *filePtr;
+    char *filename = (char*)malloc(sizeof(char));
+    //char *fileLineFormat = "%s %s %i";
+    char *line = (char*)malloc(sizeof(char));
+    char lastName[50];
+    char firstName[50];
+    int age = 0;
 
     system("dir *.txt");
-    printf("filename: ");
+    printf("filename (without extension): ");
     scanf("%s", filename);
+    filename = concatStr(filename, ".txt");
 
-    listFile = fopen (filename, "r");
-    if (listFile == NULL)
-    {
-        printf("Error opening file\n");
+    if(!fileExists(filename))
+        printf("ERROR: file not found.\n");
+    else{
+        filePtr = fopen (filename, "r");
+        if (filePtr == NULL)
+            printf("ERROR: while opening file.\n");
+        else{
+            printf("loading data will be append to current list...\n");
+
+            while (fgets(line, 100, filePtr)) {
+                // TODO: use fscanf!
+                sscanf(line, "%s %s %i", &lastName[0], &firstName[0], &age);
+                appendList(start, lastName, firstName, age);
+            }
+
+            fclose (filePtr);
+
+            printList(start); // show loaded list
+        }
     }
-    
-    printf("loading data will be append to current list...\n");
-
-    while (fgets(line, 100, listFile)) {
-        sscanf(line, fileSaveFormat, input.lastName, input.firstName, input.age);
-        appendList(start, input);
-    }
-
-    fclose (listFile);
-
-    printList(start); // show loaded list
 }
 
 void exitFcn(listElement *start)
