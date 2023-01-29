@@ -212,7 +212,6 @@ void loadList(listElement *start)
     FILE *filePtr;
     char *filename = (char*)malloc(sizeof(char));
     //char *fileLineFormat = "%s %s %i";
-    char *line = (char*)malloc(sizeof(char));
     char lastName[50];
     char firstName[50];
     int age = 0;
@@ -231,9 +230,8 @@ void loadList(listElement *start)
         else{
             printf("loading data will be append to current list...\n");
 
-            while (fgets(line, 100, filePtr)) {
-                // TODO: use fscanf!
-                sscanf(line, "%s %s %i", &lastName[0], &firstName[0], &age);
+            while (!feof(filePtr)) {
+                fscanf(filePtr, "%s %s %i\n", &lastName[0], &firstName[0], &age);
                 appendList(start, lastName, firstName, age);
             }
 
