@@ -9,8 +9,6 @@ void appendList(listElement *, char[50], char[50], int);
 
 int delListElemAtIndex(listElement *, int);
 
-const char *getFilenameExt(const char *);
-
 char* concatStr(const char*, const char*);
 
 bool fileExists(char *);
@@ -140,14 +138,6 @@ int getLenOfList(listElement *start)
         counter++;
     }
     return counter;
-}
-
-const char *getFilenameExt(const char *filename)
-{
-    const char *dot = strrchr(filename, '.');
-    if(!dot || dot == filename)
-        return "";
-    return dot + 1;
 }
 
 bool fileExists(char *filename) {
