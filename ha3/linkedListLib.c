@@ -5,20 +5,12 @@
 #include <stdbool.h>
 #include "linkedListLib.h"
 
-void appendList(listElement *, char[50], char[50], int);
-
-int delListElemAtIndex(listElement *, int);
-
-char* concatStr(const char*, const char*);
-
-bool fileExists(char *);
-
 char* concatStr(const char* strFirst, const char* strSecond)
 {
-    char *result = malloc(strlen(strFirst) + strlen(strSecond) + 1);
-    strcpy(result, strFirst);
-    strcat(result, strSecond);
-    return result;
+    char *strCombined = malloc(strlen(strFirst) + strlen(strSecond) + 1);
+    strcpy(strCombined, strFirst);
+    strcat(strCombined, strSecond);
+    return strCombined;
 }
 
 void addListElem(listElement *start)
@@ -72,17 +64,17 @@ void printList(listElement *start)
 void delListElem(listElement *start)
 {
 
-    int indexElementDelete;
+    int indexElemToDelete;
 
     if (start->nextElem == NULL)
-        printf("nothing to delete, list is alredy empty.\n");
+        printf("nothing to delete, list is already empty.\n");
     else
     {
         printList(start);
         printf("enter the index of the item, you want to delete: ");
-        scanf("%i", &indexElementDelete);
-        if(delListElemAtIndex(start, indexElementDelete) == EXIT_SUCCESS)
-            printf("deleted element with index %i\n", indexElementDelete);
+        scanf("%i", &indexElemToDelete);
+        if(delListElemAtIndex(start, indexElemToDelete) == EXIT_SUCCESS)
+            printf("deleted element with index %i.\n", indexElemToDelete);
     }
 }
 
@@ -91,7 +83,7 @@ int delListElemAtIndex(listElement *start, int indexElementDelete)
     listElement* current = start;
     listElement* previous = NULL;
 
-    if(indexElementDelete > getLenOfList(current) - 1)
+    if(indexElementDelete > getLenOfList(current) - 1 || indexElementDelete < 0)
         printf("index is out of range.\n");
     else
     {
@@ -112,18 +104,17 @@ int delListElemAtIndex(listElement *start, int indexElementDelete)
 void delList(listElement *start)
 {
     if (start->nextElem == NULL)
-        printf("nothing to delete, list is alredy empty.\n");
+        printf("nothing to delete, list is already empty.\n");
     else
     {
         // delete backwards by index
         for (int index = getLenOfList(start) - 1; index >= 0; index--)
-        {
-            delListElemAtIndex(start, index);
-        }
+            if(delListElemAtIndex(start, index) == EXIT_FAILURE){
+                printf("ERROR: unable to delete list.");
+                return;
+            }
 
-        if (start == NULL) {
-            printf("list deleted.\n");
-        }
+        printf("list deleted.\n");
     }
 }
 
@@ -140,17 +131,19 @@ int getLenOfList(listElement *start)
     return counter;
 }
 
-bool fileExists(char *filename) {
-  struct stat   buffer;   
-  return (stat (filename, &buffer) == 0);
+bool fileExists(char *filename)
+{
+
+    struct stat buffer;   
+    return (stat (filename, &buffer) == 0);
 }
 
 void saveList(listElement *start)
 {
+
     char *saveFilename = (char*)malloc(sizeof(char)); 
     FILE *filePtr;
     listElement *current = start;
-    char *fileLineFormat = "%s %s %i\n";
 
     if (current->nextElem == NULL)
         printf("nothing to save, list is empty.\n");
@@ -163,10 +156,10 @@ void saveList(listElement *start)
         if (filePtr == NULL)
             printf("ERROR: while opening file.\n");
         else{
-            do{
+            for (int index = 0; index < getLenOfList(start); index++){
                 current = current->nextElem;
-                fprintf (filePtr, fileLineFormat, current->lastName, current->firstName, current->age);
-            } while (current->nextElem != NULL);
+                fprintf (filePtr, FILE_LINE_FORMAT, current->lastName, current->firstName, current->age);
+            }
 
             fclose (filePtr);
 
@@ -177,6 +170,7 @@ void saveList(listElement *start)
 
 void appendList(listElement* start, char lastName[50], char firstName[50], int age)
 {
+
     listElement* newElem = (listElement*) malloc(sizeof(listElement));
     listElement *lastElem = start;
 
@@ -199,9 +193,9 @@ void appendList(listElement* start, char lastName[50], char firstName[50], int a
 
 void loadList(listElement *start)
 {
+    
     FILE *filePtr;
     char *filename = (char*)malloc(sizeof(char));
-    //char *fileLineFormat = "%s %s %i";
     char lastName[50];
     char firstName[50];
     int age = 0;
@@ -221,7 +215,7 @@ void loadList(listElement *start)
             printf("loading data will be append to current list...\n");
 
             while (!feof(filePtr)) {
-                fscanf(filePtr, "%s %s %i\n", &lastName[0], &firstName[0], &age);
+                fscanf(filePtr, FILE_LINE_FORMAT, &lastName[0], &firstName[0], &age);
                 appendList(start, lastName, firstName, age);
             }
 

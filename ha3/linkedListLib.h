@@ -1,5 +1,10 @@
 #ifndef HA03_LINKEDLISTLIB_H_
 #define HA03_LINKEDLISTLIB_H_
+
+#include <stdbool.h>
+
+#define FILE_LINE_FORMAT "%s %s %i\n"
+
 /** 
     \STRUCT: listElement
  
@@ -148,5 +153,73 @@ void sortList(listElement *);
     \param[in]  pointer to start element of current list        
 */
 void stringToLower(char *); 
+
+/** 
+    \FUNCTION: appendList
+ 
+    \AUTHOR: tony meissner
+
+    \DATE: 2022-01-30
+
+    \DESCRIPTION: add a new list element add the end of the linked list
+
+    \param[in]  pointer to start element of current list
+
+    \param[in]  lastname string
+
+    \param[in]  firstname string
+
+    \param[in]  age number       
+*/
+void appendList(listElement *, char[50], char[50], int);
+
+/** 
+    \FUNCTION: delListElemAtIndex
+ 
+    \AUTHOR: tony meissner
+
+    \DATE: 2022-01-30
+
+    \DESCRIPTION: delete list element at specific index
+
+    \param[in]  pointer to start element of current list  
+
+    \param[in]  index of element to delete 
+
+    \param[out]  exitCode exit_success (0) or exit_failure (1)        
+*/
+int delListElemAtIndex(listElement *, int);
+
+/** 
+    \FUNCTION: concatStr
+ 
+    \AUTHOR: tony meissner
+
+    \DATE: 2022-01-30
+
+    \DESCRIPTION: combines two strings
+
+    \param[in]  first pointer to string 
+
+    \param[in]  second pointer to string
+
+    \param[out]  combined pointer to string
+*/
+char* concatStr(const char*, const char*);
+
+/** 
+    \FUNCTION: fileExists
+ 
+    \AUTHOR: tony meissner
+
+    \DATE: 2022-01-30
+
+    \DESCRIPTION: checks if file exists
+
+    \param[in]  pointer to filename or filepath
+
+    \param[out] exists the file
+*/
+bool fileExists(char *);
 
 #endif
