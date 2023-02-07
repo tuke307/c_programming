@@ -4,34 +4,34 @@
 #include "eulerLib.h"
 
 #define NUMOFSTATES 2
-#define SIMDATAFILE "simData.txt"
 
 void rhsMSD(double *rhs, double *y)
 { // mass spring damper
 
     double m = 1.0;  // mass of object
-    double c = 5;    // feder constant
-    double d = 0.25; // damper constant
+    double c = 2.0;  // feder constant
+    double d = 3.0;  // damper constant
 
     double x = y[0]; // position
     double v = y[1]; // speed
 
     /*calc derivatives and store in rhs*/
-    rhs[0] = -(d/m * v + c/m * x);
-    rhs[1] = v;
+    rhs[0] = v;
+    rhs[1] = -((d*v/m)+(c*x/m));
 }
 
 void eulerSettingsMSD(simHandle *handle)
 {
+    int integratorSteps = 0;
 
     /*num of states*/
-    handle->numOfStates = NUMOFSTATES;
+    handle->numOfStates = (int)NUMOFSTATES;
 
     /*right hand site*/
-    handle->f = rhsMSD;
+    handle->f = &rhsMSD;
 
     /*reserve storage for init state vec*/
-    handle->stateVecInit = (double *)malloc(sizeof(double) * (handle->numOfStates));
+    handle->stateVecInit = malloc(sizeof(double) * (handle->numOfStates));
     if(handle->stateVecInit == NULL){
         printf("ERROR: can't allocate space.\n");
         return;
@@ -40,34 +40,45 @@ void eulerSettingsMSD(simHandle *handle)
     /*get user defined Simtime*/
     printf("Simtime (in s): \n");
     scanf("%lf", &(handle->simTime));
+    if(handle->simTime < 0){
+        printf("ERROR: invalid input for simtime, simtime must not be negative or zero\n");
+        return;
+    }
 
     /*get user defined StepSize*/
     printf("StepSize (in s): \n");
     scanf("%lf", &(handle->stepSize));
+    if (handle->stepSize < 0){
+        printf("ERROR: invalid input for stepsize, stepsize must not be negative or zero\n");
+        return;
+    }
 
     /*get init state position*/
     printf("position(t = 0): \n");
     scanf("%lf", &(handle->stateVecInit[0]));
-    // mit 1 anfangen
-
+    
     /*get init state speed*/
     printf("speed(t = 0): \n");
     scanf("%lf", &(handle->stateVecInit[1]));
-    // mit 0 anfangen
 
     /*reserve storage for states and derivatives*/
-    int integratorSteps = (int)ceil(handle->simTime / handle->stepSize);
-    handle->stateVec = (double *)malloc(handle->numOfStates * integratorSteps * sizeof(double));
+    integratorSteps = (int)ceil(handle->simTime / handle->stepSize);
+    handle->stateVec = malloc(sizeof(double) * (handle->numOfStates) * integratorSteps);
     if(handle->stateVec == NULL){
         printf("ERROR: can't allocate space.\n");
         return;
     }
 
-    /*init states and derivatives with zero*/
-    handle->derivStateVec = (double *)malloc(sizeof(handle->stateVec) * sizeof(double));
+    handle->derivStateVec = malloc(sizeof(double) *(handle->numOfStates) * integratorSteps);
     if(handle->derivStateVec == NULL){
         printf("ERROR: can't allocate space.\n");
         return;
+    }
+
+    /*init states and derivatives with zero*/
+    for(int i = 2; i < integratorSteps*2; i++){
+        handle->stateVec[i] = 0;
+        handle->derivStateVec[i] = 0;
     }
 }
 
@@ -75,26 +86,32 @@ void eulerForward(simHandle *handle)
 { // this is called only once
     int numOfStates = handle->numOfStates;
     int integratorSteps = (int)ceil(handle->simTime / handle->stepSize);
-    printf("\nsteps: %i\n", integratorSteps);
+    double stepSize = handle->stepSize;
+    double* derivativeTemporary;
+    double* statesTemporary;
+
+    derivativeTemporary = malloc(sizeof(double) * (handle->numOfStates));
+    statesTemporary = malloc(sizeof(double) * (handle->numOfStates));
 
     /*write init states*/
-    for (int i = 0; i < numOfStates; i++)
-    {
-        handle->stateVec[i] = handle->stateVec[i];
+    for (int i = 0; i < numOfStates; i++){
+        handle->stateVec[i] = handle->stateVecInit[i];
     }
     for (int i = 0; i < integratorSteps; i++)
     {
         /*get derivatives*/
-        //handle->f(handle->derivStateVec, handle->stateVec);
-        
-        handle->stateVec[i + i] = handle->stateVec[i] + handle->derivStateVec[i] * handle->stepSize;
-        handle->derivStateVec[i + i] = handle->derivStateVec[i] + handle->derivStateVec[i] * handle->stepSize;
+        for(int j = 0; j < numOfStates; j++){
+            statesTemporary[j] = handle->stateVec[2*i+j];
+        }
+        handle->f(derivativeTemporary, statesTemporary);
+        for(int k = 0; k < numOfStates; k++){
+            handle->derivStateVec[2*i+k] = derivativeTemporary[k];
+        }
 
-        for (int j = 0; j < numOfStates; j++)
-        {
-            /*euler step*/
-            handle->stateVec[i + i + j] = handle->stateVec[i-1] + handle->derivStateVec[i] * handle->stepSize;
-            handle->derivStateVec[i + i + j] = handle->stateVec[i-1] + handle->derivStateVec[i] * handle->stepSize;
+        for(int j = 0; j < numOfStates; j++){
+        	/*euler step*/
+            //+2 because start values should not be overwritten
+            handle->stateVec[i*2+2+j] = handle->stateVec[i*2+j] + (stepSize * handle->derivStateVec[i*2+j]);
         }
     }
 }
@@ -103,23 +120,22 @@ void showResultsMSD(simHandle *handle)
 {
 
     /*print data to text file*/
-    FILE *fh;
+    FILE *fPtr;
     int integratorSteps = (int)ceil(handle->simTime / handle->stepSize);
 
-    fh = fopen(SIMDATAFILE, "w");
-    if(fh == NULL)
-    {
-        printf("ERROR: file %s couldnt be opened.", SIMDATAFILE);
+    fPtr = fopen("simData.txt", "w");
+    if(fPtr == NULL){
+        printf("ERROR: file >>simData.txt<< couldnt be opened.");
+        return;
     }
-    else
-    {
-        for (int i = 0; i < integratorSteps; i++)
-        {
-            // i * handle->stepSize,
-            fprintf(fh, "%lf %lf %lf %lf\n", handle->stateVec[i+i], handle->stateVec[i+i+1], handle->derivStateVec[i+i],handle->derivStateVec[i+i+1]);
+    else{
+        for(int i = 0; i<integratorSteps; i++){
+            fprintf(fPtr, "%lf ", i*handle->stepSize);
+            fprintf(fPtr, "%lf ", handle->stateVec[i*2]);
+            fprintf(fPtr, "%lf\n", handle->stateVec[i*2+1]);
         }
 
-        fclose(fh);
+        fclose(fPtr);
     }
 
     /*call gnuplot*/
@@ -130,19 +146,26 @@ void generatePlot()
 {
     FILE *gnuplotPipe;
 
+    char *gnuPlotInput[] = {"set title 'Results of simulation'",
+
+                            "set xlabel 'time in s'",
+
+                            "plot 'simData.txt' using 1:2 title 'position',\
+                            'simData.txt' using 1:3 title 'speed'"};
+
     gnuplotPipe = popen("gnuplot -persistent", "w");
 
     if(gnuplotPipe == NULL)
     {
         printf("ERROR: stream couldnt be opened.");
+        return;
     }
     else
     {
         //fprintf(gnuplotPipe, "set xlabel 'time'\n");
-        fprintf(gnuplotPipe, "plot "
-        "'%s' using 1:2 title 'position', "
-        "'%s' using 3:4 title 'speed'\n", 
-        SIMDATAFILE, SIMDATAFILE);
+        for(int i = 0; i < 3; i++){
+            fprintf(gnuplotPipe, "%s\n", gnuPlotInput[i]);
+        }
 
         fprintf(gnuplotPipe, "exit");
         pclose(gnuplotPipe);

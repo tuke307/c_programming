@@ -36,7 +36,7 @@ struct SimHandle {
 typedef struct SimHandle simHandle;
 
 /** 
-    \FUNCTION: RHS_MSD
+    \FUNCTION: rhsMSD
  
     \AUTHOR: jannik wiessler
 
