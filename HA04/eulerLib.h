@@ -48,7 +48,7 @@ typedef struct SimHandle simHandle;
 
     \param[in]  reference to storage vector for derivatives [out]
 */
-void RHS_MSD(double*, double*);
+void rhsMSD(double*, double*);
 
 /** 
     \FUNCTION: eulerForward
@@ -65,7 +65,7 @@ void RHS_MSD(double*, double*);
 void eulerForward(simHandle*);
 
 /** 
-    \FUNCTION: showResults_MSD
+    \FUNCTION: showResultsMSD
  
     \AUTHOR: jannik wiessler
 
@@ -76,10 +76,10 @@ void eulerForward(simHandle*);
     \param[in]  reference to simHandle 
 
 */
-void showResults_MSD(simHandle*);
+void showResultsMSD(simHandle*);
 
 /** 
-    \FUNCTION: eulerSettings_MSD
+    \FUNCTION: eulerSettingsMSD
  
     \AUTHOR: jannik wiessler
 
@@ -90,6 +90,8 @@ void showResults_MSD(simHandle*);
     \param[in]  reference to simHandle 
 
 */
-void eulerSettings_MSD(simHandle*);
+void eulerSettingsMSD(simHandle*);
+
+void generatePlot();
 
 #endif
