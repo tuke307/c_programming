@@ -69,7 +69,7 @@ void eulerSettingsMSD(simHandle *handle)
         return;
     }
 
-    handle->derivStateVec = malloc(sizeof(double) *(handle->numOfStates) * integratorSteps);
+    handle->derivStateVec = malloc(sizeof(double) * (handle->numOfStates) * integratorSteps);
     if(handle->derivStateVec == NULL){
         printf("ERROR: can't allocate space.\n");
         return;
@@ -90,8 +90,8 @@ void eulerForward(simHandle *handle)
     double* derivativeTemporary;
     double* statesTemporary;
 
-    derivativeTemporary = malloc(sizeof(double) * (handle->numOfStates));
-    statesTemporary = malloc(sizeof(double) * (handle->numOfStates));
+    derivativeTemporary = malloc(sizeof(double) * (numOfStates));
+    statesTemporary = malloc(sizeof(double) * (numOfStates));
 
     /*write init states*/
     for (int i = 0; i < numOfStates; i++){
@@ -114,6 +114,8 @@ void eulerForward(simHandle *handle)
             handle->stateVec[i+i+2+j] = handle->stateVec[i+i+j] + (stepSize * handle->derivStateVec[i+i+j]);
         }
     }
+    free(derivativeTemporary);
+    free(statesTemporary);
 }
 
 void showResultsMSD(simHandle *handle)
@@ -129,10 +131,11 @@ void showResultsMSD(simHandle *handle)
         return;
     }
     else{
-        for(int i = 0; i<integratorSteps; i++){
+        for(int i = 0; i < integratorSteps; i++){
+            
             fprintf(fPtr, "%lf ", i*handle->stepSize);
-            fprintf(fPtr, "%lf ", handle->stateVec[i*2]);
-            fprintf(fPtr, "%lf\n", handle->stateVec[i*2+1]);
+            fprintf(fPtr, "%lf ", handle->stateVec[i+i]);
+            fprintf(fPtr, "%lf\n", handle->stateVec[i+i+1]);
         }
 
         fclose(fPtr);
