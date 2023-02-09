@@ -76,7 +76,7 @@ void eulerSettingsMSD(simHandle *handle)
     }
 
     /*init states and derivatives with zero*/
-    for(int i = 2; i < integratorSteps*2; i++){
+    for(int i = 2; i < integratorSteps+integratorSteps; i++){
         handle->stateVec[i] = 0;
         handle->derivStateVec[i] = 0;
     }
@@ -101,17 +101,17 @@ void eulerForward(simHandle *handle)
     {
         /*get derivatives*/
         for(int j = 0; j < numOfStates; j++){
-            statesTemporary[j] = handle->stateVec[2*i+j];
+            statesTemporary[j] = handle->stateVec[i+i+j];
         }
         handle->f(derivativeTemporary, statesTemporary);
         for(int k = 0; k < numOfStates; k++){
-            handle->derivStateVec[2*i+k] = derivativeTemporary[k];
+            handle->derivStateVec[i+i+k] = derivativeTemporary[k];
         }
 
         for(int j = 0; j < numOfStates; j++){
         	/*euler step*/
             //+2 because start values should not be overwritten
-            handle->stateVec[i*2+2+j] = handle->stateVec[i*2+j] + (stepSize * handle->derivStateVec[i*2+j]);
+            handle->stateVec[i+i+2+j] = handle->stateVec[i+i+j] + (stepSize * handle->derivStateVec[i+i+j]);
         }
     }
 }
