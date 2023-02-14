@@ -76,7 +76,7 @@ void eulerSettingsMSD(simHandle *handle)
     }
 
     /*init states and derivatives with zero*/
-    for(int i = 2; i < integratorSteps+integratorSteps; i++){
+    for(int i = 2; i < integratorSteps*handle->numOfStates; i++){
         handle->stateVec[i] = 0;
         handle->derivStateVec[i] = 0;
     }
@@ -101,17 +101,14 @@ void eulerForward(simHandle *handle)
     {
         /*get derivatives*/
         for(int j = 0; j < numOfStates; j++){
-            statesTemporary[j] = handle->stateVec[i+i+j];
+            statesTemporary[j] = handle->stateVec[numOfStates*i+j];
         }
         handle->f(derivativeTemporary, statesTemporary);
         for(int k = 0; k < numOfStates; k++){
-            handle->derivStateVec[i+i+k] = derivativeTemporary[k];
-        }
-
-        for(int j = 0; j < numOfStates; j++){
-        	/*euler step*/
+            /*euler step*/
             //+2 because start values should not be overwritten
-            handle->stateVec[i+i+2+j] = handle->stateVec[i+i+j] + (stepSize * handle->derivStateVec[i+i+j]);
+            handle->derivStateVec[numOfStates*i+k] = derivativeTemporary[k];
+            handle->stateVec[numOfStates*i+2+k] = handle->stateVec[numOfStates*i+k] + (stepSize * handle->derivStateVec[numOfStates*i+k]);
         }
     }
     free(derivativeTemporary);
@@ -124,7 +121,8 @@ void showResultsMSD(simHandle *handle)
     /*print data to text file*/
     FILE *fPtr;
     int integratorSteps = (int)ceil(handle->simTime / handle->stepSize);
-
+    int numOfStates = handle->numOfStates;
+    
     fPtr = fopen("simData.txt", "w");
     if(fPtr == NULL){
         printf("ERROR: file >>simData.txt<< couldnt be opened.");
@@ -134,13 +132,13 @@ void showResultsMSD(simHandle *handle)
         for(int i = 0; i < integratorSteps; i++){
             
             fprintf(fPtr, "%lf ", i*handle->stepSize);
-            fprintf(fPtr, "%lf ", handle->stateVec[i+i]);
-            fprintf(fPtr, "%lf\n", handle->stateVec[i+i+1]);
+            fprintf(fPtr, "%lf ", handle->stateVec[numOfStates*i]);
+            fprintf(fPtr, "%lf\n", handle->stateVec[numOfStates*i+1]);
         }
 
         fclose(fPtr);
     }
-
+    
     /*call gnuplot*/
     generatePlot();
 }
