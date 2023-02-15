@@ -22,16 +22,15 @@ void rhsMSD(double *rhs, double *y)
 
 void eulerSettingsMSD(simHandle *handle)
 {
-    int integratorSteps = 0;
 
     /*num of states*/
     handle->numOfStates = (int)NUMOFSTATES;
 
     /*right hand site*/
-    handle->f = &rhsMSD;
+    handle->f = rhsMSD;
 
     /*reserve storage for init state vec*/
-    handle->stateVecInit = malloc(sizeof(double) * (handle->numOfStates));
+    handle->stateVecInit = malloc((handle->numOfStates) * sizeof(double));
     if(handle->stateVecInit == NULL){
         printf("ERROR: can't allocate space.\n");
         return;
@@ -39,7 +38,7 @@ void eulerSettingsMSD(simHandle *handle)
 
     /*get user defined Simtime*/
     printf("Simtime (in s): \n");
-    scanf("%lf", &(handle->simTime));
+    scanf(" %lf", &handle->simTime);
     if(handle->simTime < 0){
         printf("ERROR: invalid input for simtime, simtime must not be negative or zero\n");
         return;
@@ -47,7 +46,7 @@ void eulerSettingsMSD(simHandle *handle)
 
     /*get user defined StepSize*/
     printf("StepSize (in s): \n");
-    scanf("%lf", &(handle->stepSize));
+    scanf(" %lf", &handle->stepSize);
     if (handle->stepSize < 0){
         printf("ERROR: invalid input for stepsize, stepsize must not be negative or zero\n");
         return;
@@ -55,28 +54,27 @@ void eulerSettingsMSD(simHandle *handle)
 
     /*get init state position*/
     printf("position(t = 0): \n");
-    scanf("%lf", &(handle->stateVecInit[0]));
+    scanf(" %lf", &handle->stateVecInit[0]);
     
     /*get init state speed*/
     printf("speed(t = 0): \n");
-    scanf("%lf", &(handle->stateVecInit[1]));
+    scanf(" %lf", &handle->stateVecInit[1]);
 
     /*reserve storage for states and derivatives*/
-    integratorSteps = (int)ceil(handle->simTime / handle->stepSize);
-    handle->stateVec = malloc(sizeof(double) * (handle->numOfStates) * integratorSteps);
+    handle->stateVec = malloc( ceil((handle->simTime / handle->stepSize)) * (handle->numOfStates) * sizeof(double));
     if(handle->stateVec == NULL){
         printf("ERROR: can't allocate space.\n");
         return;
     }
 
-    handle->derivStateVec = malloc(sizeof(double) * (handle->numOfStates) * integratorSteps);
+    handle->derivStateVec = malloc( ceil((handle->simTime / handle->stepSize)) * (handle->numOfStates) * sizeof(double));
     if(handle->derivStateVec == NULL){
         printf("ERROR: can't allocate space.\n");
         return;
     }
 
     /*init states and derivatives with zero*/
-    for(int i = 2; i < integratorSteps+integratorSteps; i++){
+    for(int i = 0; i < ceil((handle->simTime / handle->stepSize)) * (handle->numOfStates); i++){
         handle->stateVec[i] = 0;
         handle->derivStateVec[i] = 0;
     }
@@ -85,37 +83,31 @@ void eulerSettingsMSD(simHandle *handle)
 void eulerForward(simHandle *handle)
 { // this is called only once
     int numOfStates = handle->numOfStates;
-    int integratorSteps = (int)ceil(handle->simTime / handle->stepSize);
-    double stepSize = handle->stepSize;
-    double* derivativeTemporary;
-    double* statesTemporary;
-
-    derivativeTemporary = malloc(sizeof(double) * (numOfStates));
-    statesTemporary = malloc(sizeof(double) * (numOfStates));
-
+    int integratorSteps = ceil(handle->simTime / handle->stepSize)*handle->numOfStates;
+    double* tempPos = malloc(sizeof(double) * (numOfStates));
+    double* tempVel = malloc(sizeof(double) * (numOfStates));
+    double temp = 0;
+    
     /*write init states*/
     for (int i = 0; i < numOfStates; i++){
         handle->stateVec[i] = handle->stateVecInit[i];
     }
-    for (int i = 0; i < integratorSteps; i++)
+    for (int i = 0; i < integratorSteps; i=i+handle->numOfStates)
     {
         /*get derivatives*/
-        for(int j = 0; j < numOfStates; j++){
-            statesTemporary[j] = handle->stateVec[i+i+j];
-        }
-        handle->f(derivativeTemporary, statesTemporary);
-        for(int k = 0; k < numOfStates; k++){
-            handle->derivStateVec[i+i+k] = derivativeTemporary[k];
-        }
+        for(int k = 0; k < numOfStates; k++)
+		{
+            tempPos[k] = handle->stateVec[i+k];
+    	}
 
-        for(int j = 0; j < numOfStates; j++){
-        	/*euler step*/
-            //+2 because start values should not be overwritten
-            handle->stateVec[i+i+2+j] = handle->stateVec[i+i+j] + (stepSize * handle->derivStateVec[i+i+j]);
-        }
+        handle->f(tempVel, tempPos);
+
+		for(int j = 0; j < numOfStates; j++)
+		{
+			temp = handle->stateVec[i+j] + handle->stepSize * tempVel[j];
+            handle->stateVec[i+handle->numOfStates+j] = temp;
+    	}
     }
-    free(derivativeTemporary);
-    free(statesTemporary);
 }
 
 void showResultsMSD(simHandle *handle)
@@ -123,8 +115,7 @@ void showResultsMSD(simHandle *handle)
 
     /*print data to text file*/
     FILE *fPtr;
-    int integratorSteps = (int)ceil(handle->simTime / handle->stepSize);
-
+    int integratorSteps = ceil(handle->simTime / handle->stepSize);
     fPtr = fopen("simData.txt", "w");
     if(fPtr == NULL){
         printf("ERROR: file >>simData.txt<< couldnt be opened.");
@@ -138,8 +129,10 @@ void showResultsMSD(simHandle *handle)
             fprintf(fPtr, "%lf\n", handle->stateVec[i+i+1]);
         }
 
-        fclose(fPtr);
+        
     }
+
+    fclose(fPtr);
 
     /*call gnuplot*/
     generatePlot();

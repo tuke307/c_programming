@@ -23,7 +23,7 @@ int main()
 {
     // gcc eulerLib.c main.c -Wall -o main.exe
 
-    simHandle myHandle;
+    simHandle myHandle; 
     simHandle *handle = &myHandle;
     eulerSettingsMSD(handle);
     eulerForward(handle);
